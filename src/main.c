@@ -27,39 +27,39 @@
 // get prediction boxes: yolov2_forward_network.c
 void get_region_boxes_cpu(layer l, int w, int h, float thresh, float **probs, box *boxes, int only_objectness, int *map);
 
-typedef struct detection_with_class {
-    detection det;
-    // The most probable class id: the best class index in this->prob.
-    // Is filled temporary when processing results, otherwise not initialized
-    int best_class;
-} detection_with_class;
+// typedef struct detection_with_class {
+//     detection det;
+//     // The most probable class id: the best class index in this->prob.
+//     // Is filled temporary when processing results, otherwise not initialized
+//     int best_class;
+// } detection_with_class;
 
-// Creates array of detections with prob > thresh and fills best_class for them
-detection_with_class* get_actual_detections(detection *dets, int dets_num, float thresh, int* selected_detections_num)
-{
-    int selected_num = 0;
-    detection_with_class* result_arr = calloc(dets_num, sizeof(detection_with_class));
-    int i;
-    for (i = 0; i < dets_num; ++i) {
-        int best_class = -1;
-        float best_class_prob = thresh;
-        int j;
-        for (j = 0; j < dets[i].classes; ++j) {
-            if (dets[i].prob[j] > best_class_prob) {
-                best_class = j;
-                best_class_prob = dets[i].prob[j];
-            }
-        }
-        if (best_class >= 0) {
-            result_arr[selected_num].det = dets[i];
-            result_arr[selected_num].best_class = best_class;
-            ++selected_num;
-        }
-    }
-    if (selected_detections_num)
-        *selected_detections_num = selected_num;
-    return result_arr;
-}
+// // Creates array of detections with prob > thresh and fills best_class for them
+// detection_with_class* get_actual_detections(detection *dets, int dets_num, float thresh, int* selected_detections_num)
+// {
+//     int selected_num = 0;
+//     detection_with_class* result_arr = calloc(dets_num, sizeof(detection_with_class));
+//     int i;
+//     for (i = 0; i < dets_num; ++i) {
+//         int best_class = -1;
+//         float best_class_prob = thresh;
+//         int j;
+//         for (j = 0; j < dets[i].classes; ++j) {
+//             if (dets[i].prob[j] > best_class_prob) {
+//                 best_class = j;
+//                 best_class_prob = dets[i].prob[j];
+//             }
+//         }
+//         if (best_class >= 0) {
+//             result_arr[selected_num].det = dets[i];
+//             result_arr[selected_num].best_class = best_class;
+//             ++selected_num;
+//         }
+//     }
+//     if (selected_detections_num)
+//         *selected_detections_num = selected_num;
+//     return result_arr;
+// }
 
 // compare to sort detection** by bbox.x
 int compare_by_lefts(const void *a_ptr, const void *b_ptr) {

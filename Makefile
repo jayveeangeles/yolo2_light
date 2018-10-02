@@ -1,5 +1,5 @@
-GPU=0
-OPENCV=0
+GPU=1
+OPENCV=1
 OPENMP=0
 AVX=0
 SSE=0
@@ -25,7 +25,7 @@ ARCH= -gencode arch=compute_30,code=sm_30 \
 # GTX 1080, GTX 1070, GTX 1060, GTX 1050, GTX 1030, Titan Xp, Tesla P40, Tesla P4
 # ARCH= -gencode arch=compute_61,code=sm_61 -gencode arch=compute_61,code=compute_61
 
-# GP100/Tesla P100 – DGX-1
+# GP100/Tesla P100 ? DGX-1
 # ARCH= -gencode arch=compute_60,code=sm_60
 
 # For Jetson Tx1 uncomment:
@@ -38,6 +38,7 @@ ARCH= -gencode arch=compute_30,code=sm_30 \
 VPATH=./src/
 EXEC=./bin/darknet
 OBJDIR=./obj/
+SLIB=libdarknet.so
 
 CC=gcc
 CPP=g++
@@ -81,8 +82,8 @@ endif
 
 ifeq ($(CUDNN), 1) 
 COMMON+= -DCUDNN 
-CFLAGS+= -DCUDNN -I/usr/local/cudnn/include
-LDFLAGS+= -L/usr/local/cudnn/lib64 -lcudnn
+CFLAGS+= -DCUDNN -I/usr/include/powerpc64le-linux-gnu
+LDFLAGS+= -L/usr/lib/powerpc64le-linux-gnu -lcudnn
 endif
 
 OBJ=main.o additionally.o box.o yolov2_forward_network.o yolov2_forward_network_quantized.o
@@ -92,12 +93,18 @@ OBJ+=gpu.o yolov2_forward_network_gpu.o
 endif
 
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
+$(info    OBJS is $(OBJS))
+#SOBJ := $(addprefix $(OBJDIR), $(OBJ))
+#SOBJ := $(filter-out main.o, $(SOBJ))
 DEPS = $(wildcard src/*.h) Makefile
 
-all: obj bash results $(EXEC)
+all: obj bash results $(EXEC) $(SLIB)
 
 $(EXEC): $(OBJS)
 	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+$(SLIB): $(filter-out ./obj/main.o, $(OBJS)) #$(SOBJ)
+	$(CC) $(CFLAGS) -shared $^ -o $@ $(LDFLAGS)
 
 $(OBJDIR)%.o: %.c $(DEPS)
 	$(CC) $(COMMON) $(CFLAGS) -c $< -o $@
@@ -116,4 +123,3 @@ results:
 
 clean:
 	rm -rf $(OBJS) $(EXEC)
-

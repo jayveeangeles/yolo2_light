@@ -848,7 +848,7 @@ void gemm_nn_custom_bin_mean_transposed(int M, int N, int K, float ALPHA_UNUSED,
                 __m256i xor256 = _mm256_xor_si256(a_bit256, b_bit256);  // xnor = not(xor(a,b))
                 __m256i c_bit256 = _mm256_andnot_si256(xor256, all_1);  // can be optimized - we can do other NOT for wegihts once and do not do this NOT
 
-                count_sum = _mm256_add_epi64(count256(c_bit256), count_sum);    //  Mula’s algorithm
+                count_sum = _mm256_add_epi64(count256(c_bit256), count_sum);    //  Mulaï¿½s algorithm
 
                                                                                 //count += popcnt256(c_bit256);
 
@@ -4492,4 +4492,30 @@ void validate_calibrate_valid(char *datacfg, char *cfgfile, char *weightfile, in
             network_calibrate_cpu(net, X);
         }
     }
+}
+
+detection_with_class* get_actual_detections(detection *dets, int dets_num, float thresh, int* selected_detections_num)
+{
+    int selected_num = 0;
+    detection_with_class* result_arr = calloc(dets_num, sizeof(detection_with_class));
+    int i;
+    for (i = 0; i < dets_num; ++i) {
+        int best_class = -1;
+        float best_class_prob = thresh;
+        int j;
+        for (j = 0; j < dets[i].classes; ++j) {
+            if (dets[i].prob[j] > best_class_prob) {
+                best_class = j;
+                best_class_prob = dets[i].prob[j];
+            }
+        }
+        if (best_class >= 0) {
+            result_arr[selected_num].det = dets[i];
+            result_arr[selected_num].best_class = best_class;
+            ++selected_num;
+        }
+    }
+    if (selected_detections_num)
+        *selected_detections_num = selected_num;
+    return result_arr;
 }

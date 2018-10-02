@@ -49,6 +49,15 @@ extern "C" {
 
     extern int gpu_index;
 
+    // ----------- additionally.h -----------
+    
+    typedef struct detection_with_class {
+        detection det;
+        // The most probable class id: the best class index in this->prob.
+        // Is filled temporary when processing results, otherwise not initialized
+        int best_class;
+    } detection_with_class;
+
     // -------------- im2col.h --------------
 
     // im2col.c
@@ -953,6 +962,9 @@ extern "C" {
 
     // additionally.c
     void free_detections(detection *dets, int n);
+
+    // additionally.c
+    detection_with_class* get_actual_detections(detection *dets, int dets_num, float thresh, int* selected_detections_num);
 
     // -------------- yolov2_forward_network_gpu.c --------------------
 
